@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>♟ Ajedrez Online</title>
+<title>♟ Chess Online</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -367,161 +367,161 @@
   <div class="logo">
     <span class="chess-icon">♟</span>
     <h1>Aje<span>drez</span></h1>
-    <p>Juega en línea o contra la IA</p>
+    <p>Play online or against the AI</p>
   </div>
   <div class="menu-card">
-    <h2>¿Cómo quieres jugar?</h2>
-    <button class="btn btn-primary" onclick="showAIMenu()">🤖 Contra la Máquina</button>
-    <button class="btn btn-secondary" onclick="showOnlineMenu()">🌐 Multijugador Online</button>
+    <h2>How do you want to play?</h2>
+    <button class="btn btn-primary" onclick="showAIMenu()">🤖 vs Machine</button>
+    <button class="btn btn-secondary" onclick="showOnlineMenu()">🌐 Online Multiplayer</button>
   </div>
 </div>
 
 <!-- ═══ AI DIFFICULTY SCREEN ═══ -->
 <div id="aiScreen" class="screen">
-  <button class="back-btn" onclick="goMenu()">← Menú</button>
+  <button class="back-btn" onclick="goMenu()">← Menu</button>
   <div class="logo">
     <span class="chess-icon">🤖</span>
-    <h1>Contra la <span>IA</span></h1>
-    <p>Elige tu dificultad</p>
+    <h1>vs <span>AI</span></h1>
+    <p>Choose your difficulty</p>
   </div>
   <div class="menu-card">
-    <h2>Nivel de dificultad</h2>
+    <h2>Difficulty level</h2>
     <div class="level-grid">
       <div class="level-card selected" id="lvl-easy" onclick="selectLevel('easy')">
         <span class="icon">🌱</span>
         <div class="name">Fácil</div>
-        <div class="desc">Principiantes</div>
+        <div class="desc">Beginners</div>
       </div>
       <div class="level-card" id="lvl-medium" onclick="selectLevel('medium')">
         <span class="icon">⚡</span>
         <div class="name">Medio</div>
-        <div class="desc">Intermedio</div>
+        <div class="desc">Intermediate</div>
       </div>
       <div class="level-card" id="lvl-hard" onclick="selectLevel('hard')">
         <span class="icon">🔥</span>
         <div class="name">Difícil</div>
-        <div class="desc">Avanzado</div>
+        <div class="desc">Advanced</div>
       </div>
     </div>
     <div class="input-group">
-      <label>Tu nombre</label>
-      <input type="text" id="aiPlayerName" placeholder="Escribe tu nombre..." value="Jugador" maxlength="20">
+      <label>Your name</label>
+      <input type="text" id="aiPlayerName" placeholder="Enter your name..." value="Player" maxlength="20">
     </div>
     
     <div style="margin-bottom:16px;">
-      <label style="display:block;font-size:0.85rem;font-weight:700;color:var(--text-mid);margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase;">Nivel de inglés</label>
+      <label style="display:block;font-size:0.85rem;font-weight:700;color:var(--text-mid);margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase;">English level</label>
       <div class="eng-level-grid">
         <div class="eng-level-card selected" id="elev-A" onclick="selectEngLevel('A')">
           <span class="e-icon">🌱</span>
           <div class="e-name">A1/A2</div>
-          <div class="e-desc">Básico</div>
+          <div class="e-desc">Basic</div>
         </div>
         <div class="eng-level-card" id="elev-B" onclick="selectEngLevel('B')">
           <span class="e-icon">📚</span>
           <div class="e-name">B1/B2</div>
-          <div class="e-desc">Intermedio</div>
+          <div class="e-desc">Intermediate</div>
         </div>
         <div class="eng-level-card" id="elev-C" onclick="selectEngLevel('C')">
           <span class="e-icon">🎓</span>
           <div class="e-name">C1/C2</div>
-          <div class="e-desc">Avanzado</div>
+          <div class="e-desc">Advanced</div>
         </div>
       </div>
     </div>
     <div style="margin-bottom:16px;">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--text-mid);font-size:0.9rem;">
-        <input type="checkbox" id="playAsBlack" style="width:18px;height:18px;accent-color:var(--accent);"> Jugar con piezas negras
+        <input type="checkbox" id="playAsBlack" style="width:18px;height:18px;accent-color:var(--accent);"> Play as Black
       </label>
     </div>
-    <button class="btn btn-primary" onclick="startVsAI()">¡Comenzar partida!</button>
-    <button class="btn btn-outline" style="margin-top:8px" onclick="goMenu()">← Volver</button>
+    <button class="btn btn-primary" onclick="startVsAI()">Start game!</button>
+    <button class="btn btn-outline" style="margin-top:8px" onclick="goMenu()">← Back</button>
   </div>
 </div>
 
 <!-- ═══ ONLINE SCREEN ═══ -->
 <div id="onlineScreen" class="screen">
-  <button class="back-btn" onclick="goMenu()">← Menú</button>
+  <button class="back-btn" onclick="goMenu()">← Menu</button>
   <div class="logo">
     <span class="chess-icon">🌐</span>
-    <h1>Multi<span>jugador</span></h1>
-    <p>Juega con un amigo en línea</p>
+    <h1>Multi<span>player</span></h1>
+    <p>Play with a friend online</p>
   </div>
   <div class="menu-card">
     <div class="input-group">
-      <label>Tu nombre</label>
-      <input type="text" id="onlinePlayerName" placeholder="Escribe tu nombre..." value="Jugador" maxlength="20">
+      <label>Your name</label>
+      <input type="text" id="onlinePlayerName" placeholder="Enter your name..." value="Player" maxlength="20">
     </div>
     
     <div style="margin-bottom:16px;">
-      <label style="display:block;font-size:0.85rem;font-weight:700;color:var(--text-mid);margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase;">Nivel de inglés para preguntas</label>
+      <label style="display:block;font-size:0.85rem;font-weight:700;color:var(--text-mid);margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase;">English level para preguntas</label>
       <div class="eng-level-grid">
         <div class="eng-level-card selected" id="oelev-A" onclick="selectOnlineEngLevel('A')">
           <span class="e-icon">🌱</span>
           <div class="e-name">A1/A2</div>
-          <div class="e-desc">Básico</div>
+          <div class="e-desc">Basic</div>
         </div>
         <div class="eng-level-card" id="oelev-B" onclick="selectOnlineEngLevel('B')">
           <span class="e-icon">📚</span>
           <div class="e-name">B1/B2</div>
-          <div class="e-desc">Intermedio</div>
+          <div class="e-desc">Intermediate</div>
         </div>
         <div class="eng-level-card" id="oelev-C" onclick="selectOnlineEngLevel('C')">
           <span class="e-icon">🎓</span>
           <div class="e-name">C1/C2</div>
-          <div class="e-desc">Avanzado</div>
+          <div class="e-desc">Advanced</div>
         </div>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="createRoom()">🏠 Crear sala</button>
+    <button class="btn btn-primary" onclick="createRoom()">🏠 Create room</button>
     <div class="divider">o</div>
     <div class="input-group">
-      <label>Código de sala</label>
-      <input type="text" id="roomCodeInput" placeholder="Ej: ABC123" maxlength="6" style="text-transform:uppercase;letter-spacing:3px;font-size:1.2rem;text-align:center;">
+      <label>Room code</label>
+      <input type="text" id="roomCodeInput" placeholder="E.g.: ABC123" maxlength="6" style="text-transform:uppercase;letter-spacing:3px;font-size:1.2rem;text-align:center;">
     </div>
-    <button class="btn btn-secondary" onclick="joinRoom()">🚪 Unirse a sala</button>
-    <button class="btn btn-outline" style="margin-top:8px" onclick="goMenu()">← Volver</button>
+    <button class="btn btn-secondary" onclick="joinRoom()">🚪 Join room</button>
+    <button class="btn btn-outline" style="margin-top:8px" onclick="goMenu()">← Back</button>
   </div>
 </div>
 
 <!-- ═══ WAITING ROOM ═══ -->
 <div id="waitingScreen" class="screen">
-  <button class="back-btn" onclick="cancelRoom()">← Cancelar</button>
+  <button class="back-btn" onclick="cancelRoom()">← Cancel</button>
   <div class="menu-card">
-    <h2>Sala creada</h2>
+    <h2>Room created</h2>
     <div class="room-code-display">
-      <div class="label">Código de sala</div>
+      <div class="label">Room code</div>
       <div class="code" id="displayRoomCode">------</div>
     </div>
-    <p style="text-align:center;color:var(--text-light);font-size:0.9rem;margin-bottom:16px;">Comparte este código con tu amigo para que se una</p>
-    <div class="waiting-msg">⏳ Esperando al segundo jugador<span class="waiting-dots"></span></div>
+    <p style="text-align:center;color:var(--text-light);font-size:0.9rem;margin-bottom:16px;">Share this code with your friend to join</p>
+    <div class="waiting-msg">⏳ Waiting for second player<span class="waiting-dots"></span></div>
   </div>
 </div>
 
 <!-- ═══ GAME SCREEN ═══ -->
 <div id="gameScreen" class="screen">
-  <button class="back-btn" onclick="confirmLeave()" style="position:fixed;top:16px;left:16px;z-index:10;">← Salir</button>
+  <button class="back-btn" onclick="confirmLeave()" style="position:fixed;top:16px;left:16px;z-index:10;">← Exit</button>
 
   <!-- Sidebar -->
   <div class="game-sidebar">
-    <div class="game-title" id="gameTitle">♟ Ajedrez</div>
+    <div class="game-title" id="gameTitle">♟ Chess</div>
     <div class="player-card active" id="cardTop">
       <span class="player-color black" id="colorTop"></span>
-      <span class="player-name" id="nameTop">Negro</span>
+      <span class="player-name" id="nameTop">Black</span>
       <div class="player-captures" id="capturesTop"></div>
     </div>
-    <div class="status-bar" id="statusBar">Turno de Blancas</div>
+    <div class="status-bar" id="statusBar">White's turn</div>
     <div class="player-card" id="cardBottom">
       <span class="player-color white" id="colorBottom"></span>
-      <span class="player-name" id="nameBottom">Blancas</span>
+      <span class="player-name" id="nameBottom">White</span>
       <div class="player-captures" id="capturesBottom"></div>
     </div>
     <div>
-      <div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Historial</div>
+      <div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Move history</div>
       <div class="move-history" id="moveHistory"></div>
     </div>
     <div class="sidebar-btns">
-      <button class="btn btn-outline btn-small" onclick="offerDraw()">🤝 Tablas</button>
-      <button class="btn btn-danger btn-small" onclick="resignGame()">🏳 Rendirse</button>
+      <button class="btn btn-outline btn-small" onclick="offerDraw()">🤝 Draw</button>
+      <button class="btn btn-danger btn-small" onclick="resignGame()">🏳 Resign</button>
     </div>
   </div>
 
@@ -543,7 +543,7 @@
 <!-- ═══ PROMOTION MODAL ═══ -->
 <div class="modal-overlay" id="promotionModal">
   <div class="modal-box">
-    <h3>Promoción de peón</h3>
+    <h3>Pawn promotion</h3>
     <div class="promotion-pieces" id="promotionPieces"></div>
   </div>
 </div>
@@ -552,11 +552,11 @@
 <div class="modal-overlay" id="gameOverModal">
   <div class="game-over-box">
     <span class="trophy" id="gameOverTrophy">🏆</span>
-    <h2 id="gameOverTitle">¡Jaque Mate!</h2>
-    <p id="gameOverMsg">Las blancas ganan</p>
+    <h2 id="gameOverTitle">Checkmate!</h2>
+    <p id="gameOverMsg">White wins</p>
     <div class="game-over-btns">
-      <button class="btn btn-primary btn-small" onclick="playAgain()">🔄 Revancha</button>
-      <button class="btn btn-outline btn-small" onclick="goMenu()">🏠 Menú</button>
+      <button class="btn btn-primary btn-small" onclick="playAgain()">🔄 Rematch</button>
+      <button class="btn btn-outline btn-small" onclick="goMenu()">🏠 Menu</button>
     </div>
   </div>
 </div>
@@ -568,11 +568,11 @@
     <div class="quiz-header">
       <div class="quiz-player-badge" id="quizPlayerBadge">♟</div>
       <div class="quiz-header-text">
-        <div class="quiz-player-name" id="quizPlayerName">Jugador</div>
-        <div class="quiz-subtitle">Responde para poder mover</div>
+        <div class="quiz-player-name" id="quizPlayerName">Player</div>
+        <div class="quiz-subtitle">Answer to make your move</div>
       </div>
       <div class="quiz-level-badge" id="quizLevelBadge">A1/A2</div>
-      <button class="quiz-speak-btn" id="quizSpeakBtn" onclick="speakQuestion()" title="Escuchar pregunta">🔊</button>
+      <button class="quiz-speak-btn" id="quizSpeakBtn" onclick="speakQuestion()" title="Listen to question">🔊</button>
     </div>
     <div class="quiz-question" id="quizQuestion">...</div>
     <div class="quiz-options" id="quizOptions"></div>
@@ -1316,10 +1316,10 @@ function updateSidebar() {
   
   const statusEl = document.getElementById('statusBar');
   if (inCheck) {
-    statusEl.textContent = `¡Jaque! (${turn==='w'?'Blancas':'Negras'})`;
+    statusEl.textContent = `¡Jaque! (${turn==='w'?'White':'Black'})`;
     statusEl.className = 'status-bar check';
   } else {
-    statusEl.textContent = `Turno de ${turn==='w'?'Blancas':'Negras'}`;
+    statusEl.textContent = `${turn==='w'?"White's turn":"Black's turn"}`;
     statusEl.className = 'status-bar';
   }
   
@@ -1463,7 +1463,7 @@ function executeMove(from, to, promoChoice) {
 }
 
 function updateStatusAI() {
-  document.getElementById('statusBar').textContent = '🤖 IA pensando...';
+  document.getElementById('statusBar').textContent = '🤖 AI thinking...';
 }
 
 function showPromotionModal(color) {
@@ -1501,33 +1501,33 @@ function showGameOver(reason, winner) {
   
   if (reason==='checkmate') {
     trophy.textContent = winner==='w'?'♔':'♚';
-    title.textContent = '¡Jaque Mate!';
-    msg.textContent = `${winner==='w'?'Blancas':'Negras'} ganan la partida`;
-    statusEl.textContent = '¡Jaque Mate!';
+    title.textContent = 'Checkmate!';
+    msg.textContent = `${winner==='w'?'White':'Black'} wins the game`;
+    statusEl.textContent = 'Checkmate!';
     statusEl.className = 'status-bar win';
   } else if (reason==='stalemate') {
     trophy.textContent = '🤝';
-    title.textContent = 'Ahogado';
-    msg.textContent = 'La partida termina en tablas por ahogado';
-    statusEl.textContent = 'Tablas — Ahogado';
+    title.textContent = 'Stalemate';
+    msg.textContent = 'The game ends in a draw by stalemate';
+    statusEl.textContent = 'Draw — Stalemate';
     statusEl.className = 'status-bar';
   } else if (reason==='draw') {
     trophy.textContent = '🤝';
-    title.textContent = 'Tablas';
-    msg.textContent = 'Los jugadores acordaron tablas';
-    statusEl.textContent = 'Tablas acordadas';
+    title.textContent = 'Draw';
+    msg.textContent = 'Players agreed to a draw';
+    statusEl.textContent = 'Draw agreed';
     statusEl.className = 'status-bar';
   } else if (reason==='resign') {
     trophy.textContent = winner==='w'?'♔':'♚';
-    title.textContent = '¡Victoria!';
-    msg.textContent = `${winner==='w'?'Blancas':'Negras'} ganan por rendición`;
-    statusEl.textContent = 'Rendición';
+    title.textContent = 'Victory!';
+    msg.textContent = `${winner==='w'?'White':'Black'} wins by resignation`;
+    statusEl.textContent = 'Resignation';
     statusEl.className = 'status-bar win';
   } else if (reason==='timeout') {
     trophy.textContent = winner==='w'?'♔':'♚';
-    title.textContent = '¡Tiempo!';
-    msg.textContent = `${winner==='w'?'Blancas':'Negras'} ganan por tiempo`;
-    statusEl.textContent = 'Tiempo agotado';
+    title.textContent = 'Time!';
+    msg.textContent = `${winner==='w'?'White':'Black'} wins on time`;
+    statusEl.textContent = 'Time out';
     statusEl.className = 'status-bar win';
   }
   
@@ -1557,7 +1557,7 @@ function selectLevel(l) {
 
 function showAIMenu() { showScreen('aiScreen'); }
 function showOnlineMenu() {
-  if (!db) { showToast('⚠️ Modo online no disponible. Usa VS IA.'); return; }
+  if (!db) { showToast('⚠️ Online mode unavailable. Use VS AI.'); return; }
   showScreen('onlineScreen');
 }
 function goMenu() {
@@ -1568,7 +1568,7 @@ function goMenu() {
   showScreen('menuScreen');
 }
 function confirmLeave() {
-  if (confirm('¿Seguro que deseas salir de la partida?')) goMenu();
+  if (confirm('Are you sure you want to leave the game?')) goMenu();
 }
 
 // ── Setup game screen ──
@@ -1586,20 +1586,20 @@ function setupGameScreen(whiteName, blackName, mode, pColor) {
   document.getElementById('nameTop').textContent = bottomIsWhite ? blackName : whiteName;
   
   // Game title
-  const titles = { ai:'vs IA', online:'Online', local:'Local' };
-  document.getElementById('gameTitle').textContent = `♟ ${titles[mode]||'Ajedrez'}`;
+  const titles = { ai:'vs AI', online:'Online', local:'Local' };
+  document.getElementById('gameTitle').textContent = `♟ ${titles[mode]||'Chess'}`;
   
 }
 
 // ── VS AI ──
 function startVsAI() {
-  const name = document.getElementById('aiPlayerName').value.trim() || 'Jugador';
+  const name = document.getElementById('aiPlayerName').value.trim() || 'Player';
   const asBlack = document.getElementById('playAsBlack').checked;
   aiLevel = selectedLevel;
   playerColor = asBlack ? 'b' : 'w';
   
   initBoard();
-  const lvlNames = { easy:'IA Fácil', medium:'IA Medio', hard:'IA Difícil' };
+  const lvlNames = { easy:'Easy AI', medium:'Medium AI', hard:'Hard AI' };
   
   if (asBlack) {
     setupGameScreen(lvlNames[aiLevel], name, 'ai', 'b');
@@ -1684,8 +1684,8 @@ function generateRoomCode() {
 }
 
 async function createRoom() {
-  if (!db) { showToast('Firebase no disponible'); return; }
-  const name = document.getElementById('onlinePlayerName').value.trim() || 'Jugador';
+  if (!db) { showToast('Firebase not available'); return; }
+  const name = document.getElementById('onlinePlayerName').value.trim() || 'Player';
   roomCode = generateRoomCode();
   myRole = 'host';
   playerColor = 'w';
@@ -1730,15 +1730,15 @@ async function createRoom() {
 }
 
 async function joinRoom() {
-  if (!db) { showToast('Firebase no disponible'); return; }
-  const name = document.getElementById('onlinePlayerName').value.trim() || 'Jugador';
+  if (!db) { showToast('Firebase not available'); return; }
+  const name = document.getElementById('onlinePlayerName').value.trim() || 'Player';
   const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
-  if (!code || code.length !== 6) { showToast('Ingresa un código válido de 6 caracteres'); return; }
+  if (!code || code.length !== 6) { showToast('Enter a valid 6-character code'); return; }
   
   const snap = await db.ref('chess_rooms/'+code).once('value');
   const data = snap.val();
-  if (!data) { showToast('❌ Sala no encontrada'); return; }
-  if (data.status !== 'waiting') { showToast('❌ Sala llena o partida en curso'); return; }
+  if (!data) { showToast('❌ Room not found'); return; }
+  if (data.status !== 'waiting') { showToast('❌ Room full or game in progress'); return; }
   
   roomCode = code;
   myRole = 'guest';
@@ -1800,7 +1800,7 @@ function offerDraw() {
   if (gameMode==='ai') {
     const accepts = Math.random() > 0.5;
     if (accepts) showGameOver('draw', null);
-    else showToast('La IA rechaza las tablas 🤖');
+    else showToast('The AI declines the draw 🤖');
   } else {
     showGameOver('draw', null);
   }
@@ -1808,7 +1808,7 @@ function offerDraw() {
 
 function resignGame() {
   if (gameOver) return;
-  if (confirm('¿Seguro que deseas rendirte?')) {
+  if (confirm('Are you sure you want to resign?')) {
     const winner = playerColor==='w'?'b':'w';
     showGameOver('resign', winner);
   }
@@ -1842,7 +1842,7 @@ function triggerAIMoveIfNeeded() {
   const aiColor = playerColor === 'w' ? 'b' : 'w';
   if (turn === aiColor) {
     aiThinking = true;
-    document.getElementById('statusBar').textContent = '🤖 IA pensando...';
+    document.getElementById('statusBar').textContent = '🤖 AI thinking...';
     const delay = { easy:400, medium:700, hard:1200 }[aiLevel];
     setTimeout(() => {
       if (gameOver) { aiThinking=false; return; }
@@ -2083,10 +2083,10 @@ function answerQuiz(chosen, correct, clickedDiv, optsEl) {
 
   if (chosen === correct) {
     clickedDiv.classList.add('correct');
-    fb.textContent = '✅ ¡Correcto! Puedes mover.';
+    fb.textContent = '✅ Correct! You can move.';
     fb.className = 'quiz-feedback correct';
     fb.style.display = 'block';
-    continueBtn.textContent = '♟ Realizar movimiento →';
+    continueBtn.textContent = '♟ Make move →';
     continueBtn.className = 'quiz-continue-btn';
     continueBtn.dataset.canMove = 'yes';
   } else {
@@ -2095,10 +2095,10 @@ function answerQuiz(chosen, correct, clickedDiv, optsEl) {
     optsEl.querySelectorAll('.quiz-option').forEach(o => {
       if (o.dataset.letter === correct) o.classList.add('reveal-correct');
     });
-    fb.textContent = '❌ Incorrecto. ¡Pierdes tu turno!';
+    fb.textContent = '❌ Wrong! You lose your turn.';
     fb.className = 'quiz-feedback wrong';
     fb.style.display = 'block';
-    continueBtn.textContent = 'Pasar turno →';
+    continueBtn.textContent = 'Skip turn →';
     continueBtn.className = 'quiz-continue-btn wrong-continue';
     continueBtn.dataset.canMove = 'no';
   }
@@ -2225,9 +2225,9 @@ function initTTS() {
 
 function speakQuestion() {
   if (!ttsSupported || typeof SpeechSynthesisUtterance === 'undefined') {
-    showToast('🔇 Audio no disponible en este navegador (usa Chrome o Safari)');
+    showToast('🔇 Audio not available in this browser (use Chrome or Safari)');
     const btn = document.getElementById('quizSpeakBtn');
-    if (btn) { btn.classList.add('no-tts'); btn.title = 'Audio no disponible'; }
+    if (btn) { btn.classList.add('no-tts'); btn.title = 'Audio not available'; }
     return;
   }
   const btn = document.getElementById('quizSpeakBtn');
