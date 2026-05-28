@@ -643,6 +643,7 @@ function handleOnlineData(data) {
     capturedW = data.capturedW || [];
     capturedB = data.capturedB || [];
     lastMove = data.lastMove || null;
+    selected = null; possibleMoves = []; quizAsked = false;
     renderBoard();
     if (data.lastMove && data.lastMove[1] !== undefined) animatePiece(data.lastMove[1], 'ai-moving');
     if (turn === playerColor) showToast('Your turn! ♟');
@@ -2148,19 +2149,22 @@ function quizContinue() {
   const canMove = document.getElementById('quizContinueBtn').dataset.canMove;
   document.getElementById('quizModal').classList.remove('visible');
   quizAsked = false;
-
-  const { from, to, promoChoice } = quizPendingMove;
-  quizPendingMove = null;
+  selected = null;
+  possibleMoves = [];
 
   if (canMove === 'yes') {
-    doMove(from, to, promoChoice);
+    const saved = quizPendingMove;
+    quizPendingMove = null;
+    if (saved) doMove(saved.from, saved.to, saved.promoChoice);
   } else {
-    // Skip turn — pass to opponent
-    selected = null;
-    possibleMoves = [];
-    // Don't execute the move, just flip turn visually (skip)
+    // Wrong answer — flip turn and sync
     turn = turn === 'w' ? 'b' : 'w';
     renderBoard();
+    // Sync the skipped turn to opponent so they can move
+    if (gameMode === 'online') {
+      syncOnlineMove();
+      showToast('Wrong answer — opponent\'s turn now');
+    }
     if (gameMode === 'ai') triggerAIMoveIfNeeded();
   }
 }
@@ -2309,11 +2313,11 @@ function showQuizModal_withAudio(from, to, promoChoice, playerName, playerColorC
   }
 }
 
-// Stop speech when quiz closes
-const _origQuizContinue = quizContinue;
+// Stop speech when quiz closes — patch quizContinue button onclick
+const _quizContinueBtnOrig = quizContinue;
 window.quizContinue = function() {
   stopSpeech();
-  _origQuizContinue();
+  _quizContinueBtnOrig();
 };
 
 // Init TTS on load
