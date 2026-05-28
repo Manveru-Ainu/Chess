@@ -117,9 +117,7 @@
   .player-color.white { background: #FEFEFE; border-color: #ccc; }
   .player-color.black { background: #2C2416; border-color: #555; }
   .player-name { font-weight: 700; font-size: 0.95rem; }
-  .player-timer { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--text-mid); margin-top: 6px; }
-  .player-timer.urgent { color: var(--danger); animation: blink-timer 0.5s infinite; }
-  @keyframes blink-timer { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
   .player-captures { font-size: 0.75rem; color: var(--text-light); margin-top: 4px; min-height: 18px; }
 
   .status-bar {
@@ -162,9 +160,7 @@
   .sq {
     width: clamp(52px, 10vw, 72px);
     height: clamp(52px, 10vw, 72px);
-    display: flex; align-items: center; justify-content: center;
     cursor: pointer; position: relative; transition: background 0.15s;
-    font-size: clamp(28px, 5vw, 42px);
   }
   .sq.light { background: var(--light-sq); }
   .sq.dark  { background: var(--dark-sq); }
@@ -176,10 +172,27 @@
   .sq.last-move { background: rgba(255,200,0,0.35) !important; }
   .sq.in-check { background: rgba(192,57,43,0.55) !important; }
 
-  .piece { cursor: pointer; transition: transform 0.15s; line-height: 1; position: relative; z-index: 1; }
-  .piece:hover { transform: scale(1.1); }
-  .piece.white { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); }
-  .piece.black { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)) brightness(0.1) invert(0); }
+  .piece {
+    cursor: pointer; position: absolute; inset: 2px;
+    z-index: 1; pointer-events: none;
+    transition: transform 0.15s ease;
+  }
+  .piece svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25)); }
+  .piece.moving { animation: pieceBounce 0.35s cubic-bezier(.36,.07,.19,.97); }
+  .piece.ai-moving { animation: aiMoveAnim 0.5s cubic-bezier(.175,.885,.32,1.275); }
+  @keyframes pieceBounce {
+    0%   { transform: scale(1) translateY(0); }
+    30%  { transform: scale(1.18) translateY(-8px); }
+    60%  { transform: scale(0.95) translateY(2px); }
+    100% { transform: scale(1) translateY(0); }
+  }
+  @keyframes aiMoveAnim {
+    0%   { transform: scale(0.6) translateY(-12px); opacity: 0.3; }
+    50%  { transform: scale(1.22) translateY(-6px); opacity: 1; }
+    75%  { transform: scale(0.93) translateY(1px); }
+    100% { transform: scale(1) translateY(0); }
+  }
+  .sq { position: relative; }
 
   /* ─── PROMOTION MODAL ─── */
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; align-items:center; justify-content:center; }
@@ -187,7 +200,7 @@
   .modal-box { background:var(--warm-white); border-radius:20px; padding:32px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
   .modal-box h3 { font-family:'Playfair Display',serif; margin-bottom:20px; font-size:1.3rem; }
   .promotion-pieces { display:flex; gap:16px; justify-content:center; }
-  .promo-btn { font-size:2.8rem; cursor:pointer; padding:12px; border-radius:12px; border:2px solid var(--border); transition:all 0.2s; background:var(--cream); }
+  .promo-btn { width:72px; height:72px; cursor:pointer; padding:4px; border-radius:12px; border:2px solid var(--border); transition:all 0.2s; background:var(--cream); display:inline-block; }
   .promo-btn:hover { border-color:var(--accent); transform:scale(1.1); background:rgba(74,124,89,0.1); }
 
   /* ─── GAME OVER MODAL ─── */
@@ -477,14 +490,12 @@
     <div class="player-card active" id="cardTop">
       <span class="player-color black" id="colorTop"></span>
       <span class="player-name" id="nameTop">Negro</span>
-      <div class="player-timer" id="timerTop">10:00</div>
       <div class="player-captures" id="capturesTop"></div>
     </div>
     <div class="status-bar" id="statusBar">Turno de Blancas</div>
     <div class="player-card" id="cardBottom">
       <span class="player-color white" id="colorBottom"></span>
       <span class="player-name" id="nameBottom">Blancas</span>
-      <div class="player-timer" id="timerBottom">10:00</div>
       <div class="player-captures" id="capturesBottom"></div>
     </div>
     <div>
@@ -544,6 +555,7 @@
         <div class="quiz-subtitle">Responde para poder mover</div>
       </div>
       <div class="quiz-level-badge" id="quizLevelBadge">A1/A2</div>
+      <button class="quiz-speak-btn" id="quizSpeakBtn" onclick="speakQuestion()" title="Escuchar pregunta">🔊</button>
     </div>
     <div class="quiz-question" id="quizQuestion">...</div>
     <div class="quiz-options" id="quizOptions"></div>
@@ -588,6 +600,226 @@ const PIECES = {
   wK:'♔', wQ:'♕', wR:'♖', wB:'♗', wN:'♘', wP:'♙',
   bK:'♚', bQ:'♛', bR:'♜', bB:'♝', bN:'♞', bP:'♟'
 };
+
+// ══════════════════════════════════════════
+// SVG CARTOON PIECES
+// ══════════════════════════════════════════
+function buildPieceSVG(code) {
+  const color = code[0]; // 'w' or 'b'
+  const type  = code[1]; // K Q R B N P
+  const G = (clr) => clr === 'w'
+    ? { main:'#F0D060', mid:'#E8C040', dark:'#C8941A', dk2:'#A07010', skin:'#F5E8B0', acc:'#FFD700', eye:'#2A2A4A', hi:'#FFE870' }
+    : { main:'#1E4A8A', mid:'#4A90D9', dark:'#0A1A3A', dk2:'#1a3a6a', skin:'#C8D8F0', acc:'#4A90D9', eye:'#0A1A3A', hi:'#90C0FF' };
+  const c = G(color);
+
+  const svgWrap = (content, vw=80, vh=96) =>
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vw} ${vh}" style="width:100%;height:100%;display:block">${content}</svg>`;
+
+  // BASE shared
+  const base = (w=68) => {
+    const x = (80-w)/2;
+    return `<ellipse cx="40" cy="90" rx="${w/2}" ry="6" fill="${c.dark}" opacity="0.4"/>
+            <rect x="${x}" y="80" width="${w}" height="12" rx="4" fill="${c.dk2}"/>
+            <rect x="${x+6}" y="74" width="${w-12}" height="10" rx="3" fill="${c.mid}"/>`;
+  };
+
+  if (type === 'K') {
+    return svgWrap(`
+      ${base(70)}
+      <rect x="10" y="38" width="60" height="38" rx="10" fill="${c.main}"/>
+      <path d="M7,42 Q1,62 4,78 L18,78 Q14,58 16,46Z" fill="${c.dark}"/>
+      <path d="M73,42 Q79,62 76,78 L62,78 Q66,58 64,46Z" fill="${c.dark}"/>
+      <rect x="10" y="58" width="60" height="8" rx="2" fill="${c.dark}" opacity="0.3"/>
+      <rect x="29" y="56" width="12" height="14" rx="2" fill="${c.acc}"/>
+      <rect x="22" y="23" width="36" height="10" rx="3" fill="${c.dk2}"/>
+      <polygon points="22,23 26,7 31,23" fill="${c.main}"/>
+      <polygon points="36,23 40,3 44,23" fill="${c.acc}"/>
+      <polygon points="49,23 54,7 58,23" fill="${c.main}"/>
+      <circle cx="40" cy="3" r="5" fill="#E84040"/>
+      <circle cx="26" cy="7" r="3" fill="#40C0E8"/>
+      <circle cx="54" cy="7" r="3" fill="#40C0E8"/>
+      <rect x="24" y="14" width="36" height="10" rx="2" fill="${c.mid}"/>
+      <ellipse cx="40" cy="28" rx="20" ry="16" fill="${c.skin}"/>
+      <ellipse cx="12" cy="30" rx="5" ry="7" fill="${c.skin}"/>
+      <ellipse cx="68" cy="30" rx="5" ry="7" fill="${c.skin}"/>
+      <ellipse cx="32" cy="26" rx="4" ry="5" fill="white"/>
+      <ellipse cx="48" cy="26" rx="4" ry="5" fill="white"/>
+      <circle cx="33" cy="27" r="2.5" fill="${c.eye}"/>
+      <circle cx="49" cy="27" r="2.5" fill="${c.eye}"/>
+      <circle cx="34" cy="26" r="1" fill="white"/>
+      <circle cx="50" cy="26" r="1" fill="white"/>
+      <path d="M27,20 Q32,17 37,20" stroke="${c.dark}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M43,20 Q48,17 53,20" stroke="${c.dark}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M31,35 Q40,42 49,35" stroke="${c.dk2}" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M31,32 Q36,28 40,32 Q44,28 49,32" stroke="${c.dark}" stroke-width="1.5" fill="none"/>
+    `);
+  }
+
+  if (type === 'Q') {
+    return svgWrap(`
+      ${base(66)}
+      <path d="M8,40 Q2,65 5,78 L75,78 Q78,65 72,40Z" fill="${c.main}"/>
+      <path d="M8,40 Q2,65 5,78 L20,78 Q18,56 20,44Z" fill="${c.dark}" opacity="0.5"/>
+      <path d="M5,72 Q17,65 29,72 Q41,79 53,72 Q65,65 75,72 L75,78 L5,78Z" fill="${c.acc}"/>
+      <rect x="18" y="36" width="44" height="42" rx="7" fill="${c.mid}"/>
+      <text x="40" y="65" font-size="13" text-anchor="middle" fill="${c.acc}" opacity="0.6">✦</text>
+      <rect x="26" y="23" width="28" height="16" rx="5" fill="${c.skin}"/>
+      <path d="M14,22 Q16,5 26,5 Q34,5 40,2 Q46,5 54,5 Q64,5 66,22Z" fill="${c.main}"/>
+      <path d="M18,22 Q20,8 28,8 Q34,8 40,5 Q46,8 52,8 Q60,8 62,22Z" fill="${c.mid}"/>
+      <line x1="19" y1="22" x2="18" y2="7" stroke="${c.dk2}" stroke-width="2.5"/>
+      <line x1="29" y1="22" x2="29" y2="4" stroke="${c.dk2}" stroke-width="2.5"/>
+      <line x1="40" y1="22" x2="40" y2="2" stroke="${c.dk2}" stroke-width="2.5"/>
+      <line x1="51" y1="22" x2="51" y2="4" stroke="${c.dk2}" stroke-width="2.5"/>
+      <line x1="61" y1="22" x2="62" y2="7" stroke="${c.dk2}" stroke-width="2.5"/>
+      <circle cx="18" cy="5" r="3.5" fill="${c.acc}"/>
+      <circle cx="29" cy="3" r="3.5" fill="#E84040"/>
+      <circle cx="40" cy="1" r="4.5" fill="${c.acc}"/>
+      <circle cx="51" cy="3" r="3.5" fill="#E84040"/>
+      <circle cx="62" cy="5" r="3.5" fill="${c.acc}"/>
+      <path d="M13,30 Q16,18 20,14" stroke="${c.dark}" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M67,30 Q64,18 60,14" stroke="${c.dark}" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <ellipse cx="40" cy="27" rx="18" ry="16" fill="${c.skin}"/>
+      <ellipse cx="10" cy="28" rx="5" ry="7" fill="${c.skin}"/>
+      <ellipse cx="70" cy="28" rx="5" ry="7" fill="${c.skin}"/>
+      <ellipse cx="32" cy="24" rx="4" ry="5" fill="white"/>
+      <ellipse cx="48" cy="24" rx="4" ry="5" fill="white"/>
+      <circle cx="33" cy="25" r="2.5" fill="${c.eye}"/>
+      <circle cx="49" cy="25" r="2.5" fill="${c.eye}"/>
+      <circle cx="34" cy="24" r="1" fill="white"/>
+      <circle cx="50" cy="24" r="1" fill="white"/>
+      <path d="M25,18 L29,18" stroke="${c.dark}" stroke-width="1.5"/>
+      <path d="M28,18 L30,13" stroke="${c.dark}" stroke-width="1.2"/>
+      <path d="M37,18 L43,18" stroke="${c.dark}" stroke-width="1.5"/>
+      <path d="M51,18 L55,18" stroke="${c.dark}" stroke-width="1.5"/>
+      <path d="M52,18 L50,13" stroke="${c.dark}" stroke-width="1.2"/>
+      <ellipse cx="22" cy="33" rx="6" ry="3" fill="#FFB0B0" opacity="0.5"/>
+      <ellipse cx="58" cy="33" rx="6" ry="3" fill="#FFB0B0" opacity="0.5"/>
+      <path d="M30,35 Q40,42 50,35" stroke="${c.dk2}" stroke-width="2" fill="none" stroke-linecap="round"/>
+    `);
+  }
+
+  if (type === 'R') {
+    return svgWrap(`
+      ${base(68)}
+      <rect x="16" y="32" width="48" height="48" rx="4" fill="${c.main}"/>
+      <rect x="20" y="48" width="12" height="18" rx="2" fill="${c.dark}" opacity="0.5"/>
+      <path d="M20,48 Q26,42 32,48" fill="${c.dark}" opacity="0.3"/>
+      <rect x="26" y="60" width="6" height="2" rx="1" fill="${c.acc}" opacity="0.5"/>
+      <line x1="16" y1="53" x2="64" y2="53" stroke="${c.dark}" stroke-width="1" opacity="0.3"/>
+      <line x1="16" y1="63" x2="64" y2="63" stroke="${c.dark}" stroke-width="1" opacity="0.3"/>
+      <rect x="12" y="22" width="56" height="16" rx="3" fill="${c.mid}"/>
+      <rect x="10" y="10" width="14" height="16" rx="2" fill="${c.main}"/>
+      <rect x="33" y="10" width="14" height="16" rx="2" fill="${c.main}"/>
+      <rect x="56" y="10" width="14" height="16" rx="2" fill="${c.main}"/>
+      <ellipse cx="40" cy="42" rx="14" ry="13" fill="${c.skin}"/>
+      <ellipse cx="32" cy="39" rx="4" ry="4.5" fill="white"/>
+      <ellipse cx="48" cy="39" rx="4" ry="4.5" fill="white"/>
+      <circle cx="33" cy="40" r="2.5" fill="${c.eye}"/>
+      <circle cx="49" cy="40" r="2.5" fill="${c.eye}"/>
+      <circle cx="34" cy="39" r="1" fill="white"/>
+      <circle cx="50" cy="39" r="1" fill="white"/>
+      <path d="M27,34 L35,36" stroke="${c.dark}" stroke-width="2" stroke-linecap="round"/>
+      <path d="M45,36 L53,34" stroke="${c.dark}" stroke-width="2" stroke-linecap="round"/>
+      <path d="M32,50 Q40,46 48,50" stroke="${c.dk2}" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M11" y1="46" x2="11" y2="66"/>
+      <path d="M10,46 Q4,52 8,62" stroke="${c.main}" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M70,46 Q76,52 72,62" stroke="${c.main}" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <circle cx="7" cy="64" r="5" fill="${c.skin}"/>
+      <circle cx="73" cy="64" r="5" fill="${c.skin}"/>
+    `);
+  }
+
+  if (type === 'B') {
+    return svgWrap(`
+      ${base(62)}
+      <path d="M12,40 Q6,62 8,78 L72,78 Q74,62 68,40Z" fill="${c.main}"/>
+      <path d="M12,40 Q6,62 8,78 L22,78 Q20,58 22,44Z" fill="${c.dark}" opacity="0.4"/>
+      <rect x="20" y="34" width="40" height="46" rx="6" fill="${c.mid}"/>
+      <line x1="68" y1="28" x2="68" y2="79" stroke="${c.dark}" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="68" cy="24" r="8" fill="${c.mid}"/>
+      <circle cx="68" cy="24" r="4" fill="#E84040"/>
+      <ellipse cx="38" cy="24" rx="18" ry="7" fill="${c.dk2}"/>
+      <path d="M22,24 Q24,2 38,0 Q52,2 54,24Z" fill="${c.main}"/>
+      <path d="M26,24 Q27,5 38,3 Q49,5 50,24Z" fill="${c.mid}"/>
+      <line x1="38" y1="3" x2="38" y2="14" stroke="${c.acc}" stroke-width="2.5"/>
+      <line x1="31" y1="9" x2="45" y2="9" stroke="${c.acc}" stroke-width="2.5"/>
+      <circle cx="38" cy="0" r="4.5" fill="#40C0E8"/>
+      <ellipse cx="38" cy="30" rx="16" ry="14" fill="${c.skin}"/>
+      <ellipse cx="10" cy="32" rx="5" ry="7" fill="${c.skin}"/>
+      <ellipse cx="66" cy="32" rx="5" ry="7" fill="${c.skin}"/>
+      <ellipse cx="30" cy="27" rx="4" ry="4.5" fill="white"/>
+      <ellipse cx="46" cy="27" rx="4" ry="4.5" fill="white"/>
+      <circle cx="31" cy="28" r="2.5" fill="${c.eye}"/>
+      <circle cx="47" cy="28" r="2.5" fill="${c.eye}"/>
+      <circle cx="32" cy="27" r="1" fill="white"/>
+      <circle cx="48" cy="27" r="1" fill="white"/>
+      <path d="M25,21 Q29,18 33,21" stroke="${c.dark}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M43,21 Q47,18 51,21" stroke="${c.dark}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M28,37 Q38,44 48,37" stroke="${c.dk2}" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="38" cy="42" rx="5" ry="3" fill="${c.dark}" opacity="0.4"/>
+    `);
+  }
+
+  if (type === 'N') {
+    return svgWrap(`
+      ${base(68)}
+      <rect x="16" y="40" width="48" height="40" rx="8" fill="${c.main}"/>
+      <rect x="22" y="44" width="34" height="26" rx="5" fill="${c.mid}"/>
+      <line x1="39" y1="48" x2="39" y2="66" stroke="${c.dark}" stroke-width="1.5" opacity="0.5"/>
+      <line x1="22" y1="58" x2="56" y2="58" stroke="${c.dark}" stroke-width="1.5" opacity="0.5"/>
+      <ellipse cx="40" cy="34" rx="24" ry="20" fill="${c.main}"/>
+      <ellipse cx="40" cy="44" rx="18" ry="10" fill="${c.mid}"/>
+      <ellipse cx="40" cy="46" rx="14" ry="7" fill="${c.main}" opacity="0.5"/>
+      <ellipse cx="33" cy="46" rx="3" ry="2" fill="${c.dark}" opacity="0.5"/>
+      <ellipse cx="47" cy="46" rx="3" ry="2" fill="${c.dark}" opacity="0.5"/>
+      <path d="M16,34 Q12,40 14,48 Q17,54 22,56" stroke="${c.dark}" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M18,31 Q22,22 31,18 Q43,15 52,18" stroke="${c.mid}" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <polygon points="26,30 20,12 32,28" fill="${c.main}"/>
+      <polygon points="54,30 60,12 48,28" fill="${c.main}"/>
+      <polygon points="26,30 23,18 29,28" fill="${c.hi}" opacity="0.5"/>
+      <rect x="15" y="30" width="50" height="7" rx="2" fill="${c.dk2}" opacity="0.6"/>
+      <ellipse cx="29" cy="27" rx="6" ry="7" fill="white"/>
+      <ellipse cx="51" cy="27" rx="6" ry="7" fill="white"/>
+      <circle cx="30" cy="28" r="4" fill="${c.eye}"/>
+      <circle cx="52" cy="28" r="4" fill="${c.eye}"/>
+      <circle cx="31" cy="26" r="1.5" fill="white"/>
+      <circle cx="53" cy="26" r="1.5" fill="white"/>
+      <path d="M64" y1="52" x2="80" y2="32"/>
+      <line x1="60" y1="52" x2="78" y2="30" stroke="${c.main}" stroke-width="6" stroke-linecap="round"/>
+      <rect x="76" y="16" width="5" height="28" rx="2" fill="#D0D8E8" transform="rotate(-20,76,16)"/>
+      <rect x="70" y="34" width="18" height="4" rx="2" fill="${c.acc}"/>
+    `);
+  }
+
+  if (type === 'P') {
+    return svgWrap(`
+      ${base(58)}
+      <ellipse cx="40" cy="56" rx="22" ry="24" fill="${c.main}"/>
+      <ellipse cx="36" cy="46" rx="9" ry="13" fill="${c.hi}" opacity="0.3"/>
+      <path d="M18,52 Q11,60 14,70" stroke="${c.main}" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M62,52 Q69,60 66,70" stroke="${c.main}" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <circle cx="12" cy="72" r="5" fill="${c.skin}"/>
+      <circle cx="68" cy="72" r="5" fill="${c.skin}"/>
+      <rect x="30" y="26" width="20" height="18" rx="5" fill="${c.skin}"/>
+      <ellipse cx="40" cy="22" rx="20" ry="20" fill="${c.skin}"/>
+      <path d="M20,19 Q20,0 40,0 Q60,0 60,19Z" fill="${c.mid}"/>
+      <rect x="22" y="14" width="36" height="7" rx="3" fill="${c.dk2}"/>
+      <rect x="22" y="22" width="8" height="12" rx="3" fill="${c.dk2}"/>
+      <rect x="50" y="22" width="8" height="12" rx="3" fill="${c.dk2}"/>
+      <ellipse cx="32" cy="20" rx="5" ry="5.5" fill="white"/>
+      <ellipse cx="48" cy="20" rx="5" ry="5.5" fill="white"/>
+      <circle cx="33" cy="21" r="3" fill="${c.eye}"/>
+      <circle cx="49" cy="21" r="3" fill="${c.eye}"/>
+      <circle cx="34" cy="20" r="1" fill="white"/>
+      <circle cx="50" cy="20" r="1" fill="white"/>
+      <path d="M27,13 L35,15" stroke="${c.dark}" stroke-width="2" stroke-linecap="round"/>
+      <path d="M45,15 L53,13" stroke="${c.dark}" stroke-width="2" stroke-linecap="round"/>
+      <path d="M30,30 Q40,37 50,30" stroke="${c.dk2}" stroke-width="2" fill="none" stroke-linecap="round"/>
+    `);
+  }
+  return '<svg></svg>';
+}
+
 
 const PIECE_VALUES = { K:20000, Q:900, R:500, B:330, N:320, P:100 };
 
@@ -1036,9 +1268,10 @@ function renderBoard() {
     }
     
     if (board[i]) {
-      const piece = document.createElement('span');
+      const piece = document.createElement('div');
       piece.className = 'piece ' + (board[i][0]==='w' ? 'white' : 'black');
-      piece.textContent = PIECES[board[i]];
+      piece.dataset.piece = board[i];
+      piece.innerHTML = buildPieceSVG(board[i]);
       sq.appendChild(piece);
     }
     
@@ -1235,30 +1468,10 @@ function showPromotionModal(color) {
 }
 
 // ── Timer ──
-function startTimer() {
-  clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    if (gameOver) return;
-    if (turn==='w') timerW = Math.max(0, timerW-1);
-    else timerB = Math.max(0, timerB-1);
-    updateTimers();
-    if (timerW===0) { clearInterval(timerInterval); showGameOver('timeout','b'); }
-    if (timerB===0) { clearInterval(timerInterval); showGameOver('timeout','w'); }
-  }, 1000);
-}
+function startTimer() { /* timer disabled */ }
 
-function updateTimers() {
-  const fmtTime = s => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
-  const bottomIsWhite = playerColor==='w';
-  const wEl = bottomIsWhite ? document.getElementById('timerBottom') : document.getElementById('timerTop');
-  const bEl = bottomIsWhite ? document.getElementById('timerTop') : document.getElementById('timerBottom');
-  wEl.textContent = fmtTime(timerW);
-  bEl.textContent = fmtTime(timerB);
-  wEl.className = 'player-timer' + (timerW<60&&turn==='w'?' urgent':'');
-  bEl.className = 'player-timer' + (timerB<60&&turn==='b'?' urgent':'');
-}
+function updateTimers() { /* timer disabled */ }
 
-// ── Game Over ──
 function showGameOver(reason, winner) {
   gameOver = true;
   clearInterval(timerInterval);
@@ -1358,7 +1571,6 @@ function setupGameScreen(whiteName, blackName, mode, pColor) {
   const titles = { ai:'vs IA', online:'Online', local:'Local' };
   document.getElementById('gameTitle').textContent = `♟ ${titles[mode]||'Ajedrez'}`;
   
-  updateTimers();
 }
 
 // ── VS AI ──
@@ -1379,7 +1591,6 @@ function startVsAI() {
   
   showScreen('gameScreen');
   renderBoard();
-  startTimer();
   
   // If AI goes first (player is black)
   if (asBlack) {
@@ -1495,8 +1706,7 @@ async function createRoom() {
       setupGameScreen(name, data.guest, 'online', 'w');
       showScreen('gameScreen');
       renderBoard();
-      startTimer();
-      listenForOpponentMoves();
+          listenForOpponentMoves();
     }
   });
 }
@@ -1522,7 +1732,6 @@ async function joinRoom() {
   setupGameScreen(data.host, name, 'online', 'b');
   showScreen('gameScreen');
   renderBoard();
-  startTimer();
   listenForOpponentMoves();
 }
 
@@ -1592,8 +1801,7 @@ function playAgain() {
   if (gameMode==='ai') {
     initBoard();
     renderBoard();
-    startTimer();
-    gameOver = false;
+      gameOver = false;
     aiPlayIfNeeded();
   } else {
     goMenu();
@@ -1696,6 +1904,8 @@ function doMove(from, to, promoChoice) {
   if(!inCheck&&!hasMoves){renderBoard();setTimeout(()=>showGameOver('stalemate',null),500);return;}
   
   renderBoard();
+  // Animate the piece that just arrived
+  animatePiece(to, color !== playerColor && gameMode === 'ai' ? 'ai-moving' : 'moving');
   if(gameMode==='online') syncOnlineMove();
   
   // Trigger AI if needed
@@ -1732,7 +1942,7 @@ function showPromotionModal(color) {
   pieces.forEach(p=>{
     const btn=document.createElement('div');
     btn.className='promo-btn';
-    btn.textContent=PIECES[p];
+    btn.innerHTML=buildPieceSVG(p);
     btn.onclick=()=>{
       document.getElementById('promotionModal').classList.remove('visible');
       const{from,to}=waitForPromotion;
@@ -1746,6 +1956,18 @@ function showPromotionModal(color) {
 
 // Initial render
 initBoard()
+
+
+function animatePiece(sqIdx, cls) {
+  const sq = document.querySelector(`[data-idx="${sqIdx}"]`);
+  if (!sq) return;
+  const pieceEl = sq.querySelector('.piece');
+  if (!pieceEl) return;
+  pieceEl.classList.remove('moving', 'ai-moving');
+  void pieceEl.offsetWidth; // reflow
+  pieceEl.classList.add(cls);
+  setTimeout(() => pieceEl.classList.remove(cls), cls === 'ai-moving' ? 600 : 400);
+}
 
 // ═══════════════════════════════════════════════
 // QUIZ SYSTEM
@@ -1927,7 +2149,7 @@ function handleSquareClick(i) {
     possibleMoves = [];
     renderBoard();
     // Show quiz
-    showQuizModal(pendingFrom, i, isPromo ? null : null, playerName, movingColor);
+    showQuizModal_withAudio(pendingFrom, i, isPromo ? null : null, playerName, movingColor);
     return;
   }
 
@@ -1947,6 +2169,90 @@ const _origStartVsAI = startVsAI;
 window.startVsAI = function() {
   _origStartVsAI();
 };
+
+
+// ══════════════════════════════════════════
+// TEXT-TO-SPEECH (AUDIO LISTENING)
+// ══════════════════════════════════════════
+let ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+let currentUtterance = null;
+let ttsVoice = null;
+let ttsReady = false;
+
+function initTTS() {
+  if (!ttsSupported) return;
+  const loadVoices = () => {
+    const voices = speechSynthesis.getVoices();
+    // Prefer a native English voice
+    ttsVoice = voices.find(v => v.lang.startsWith('en') && v.localService) ||
+               voices.find(v => v.lang.startsWith('en')) ||
+               voices[0] || null;
+    ttsReady = true;
+  };
+  if (speechSynthesis.getVoices().length) loadVoices();
+  else speechSynthesis.addEventListener('voiceschanged', loadVoices);
+}
+
+function speakQuestion() {
+  if (!ttsSupported) {
+    showToast('Tu navegador no soporta audio TTS');
+    return;
+  }
+  const btn = document.getElementById('quizSpeakBtn');
+  const qEl = document.getElementById('quizQuestion');
+  const optsEls = document.querySelectorAll('.quiz-option span:last-child');
+  if (!qEl) return;
+
+  // Build full text: question + options
+  const optLetters = ['A', 'B', 'C', 'D'];
+  let text = qEl.textContent;
+  optsEls.forEach((el, i) => {
+    text += '. Option ' + optLetters[i] + ': ' + el.textContent;
+  });
+
+  // Stop any current speech
+  speechSynthesis.cancel();
+  btn.classList.remove('speaking');
+
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = 0.88;
+  utter.pitch = 1.05;
+  if (ttsVoice) utter.voice = ttsVoice;
+
+  utter.onstart = () => btn.classList.add('speaking');
+  utter.onend   = () => btn.classList.remove('speaking');
+  utter.onerror = () => btn.classList.remove('speaking');
+  currentUtterance = utter;
+  speechSynthesis.speak(utter);
+}
+
+function stopSpeech() {
+  if (ttsSupported) speechSynthesis.cancel();
+  const btn = document.getElementById('quizSpeakBtn');
+  if (btn) btn.classList.remove('speaking');
+}
+
+// Auto-speak when quiz opens
+function showQuizModal_withAudio(from, to, promoChoice, playerName, playerColorCode) {
+  showQuizModal(from, to, promoChoice, playerName, playerColorCode);
+  // Small delay to let modal render
+  setTimeout(() => speakQuestion(), 350);
+}
+
+// Stop speech when quiz closes
+const _origQuizContinue = quizContinue;
+window.quizContinue = function() {
+  stopSpeech();
+  _origQuizContinue();
+};
+
+// Init TTS on load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initTTS);
+} else {
+  initTTS();
+}
 
 // Reset used questions on new game
 const _origInitBoard = initBoard;
