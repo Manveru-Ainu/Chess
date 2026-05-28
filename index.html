@@ -928,6 +928,7 @@ let myRole = null; // 'host' | 'guest'
 let roomListener = null;
 let waitForPromotion = null;
 let drawOffered = false;
+let currentQuestionText = '';
 
 function initBoard() {
   board = Array(64).fill(null);
@@ -2045,6 +2046,7 @@ function showQuizModal(from, to, promoChoice, playerName, playerColorCode) {
   levelBadge.className = 'quiz-level-badge quiz-level-' + lvl;
 
   // Question
+  currentQuestionText = q.q;
   document.getElementById('quizQuestion').textContent = q.q;
 
   // Options
@@ -2229,11 +2231,8 @@ function speakQuestion() {
     return;
   }
   const btn = document.getElementById('quizSpeakBtn');
-  const qEl = document.getElementById('quizQuestion');
-  if (!qEl) return;
-
-  // Build full text: question + options
-  let text = qEl.textContent;
+  if (!currentQuestionText) return;
+  let text = currentQuestionText;
 
   // Stop any current speech
   speechSynthesis.cancel();
