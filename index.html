@@ -475,9 +475,9 @@
     <button class="btn btn-primary" onclick="createRoom()">🏠 Create room</button>
     <div class="divider">o</div>
     <div class="input-group">
-      <label>Paste full room code from host</label>
-      <input type="text" id="roomCodeInput" placeholder="Paste full code here..." maxlength="36"
-        style="font-size:0.8rem;letter-spacing:1px;font-family:monospace;">
+      <label>5-digit room code</label>
+      <input type="text" id="roomCodeInput" placeholder="12345" maxlength="5"
+        style="font-size:1.8rem;letter-spacing:8px;text-align:center;font-family:monospace;font-weight:700;">
     </div>
     <button class="btn btn-secondary" onclick="joinRoom()">🚪 Join room</button>
     <button class="btn btn-outline" style="margin-top:8px" onclick="goMenu()">← Back</button>
@@ -494,10 +494,10 @@
       <div class="code" id="displayRoomCode">------</div>
     </div>
     <input type="hidden" id="fullRoomCode" value="">
-    <p style="text-align:center;color:var(--text-light);font-size:0.85rem;margin-bottom:12px;">Share the full code below with your friend</p>
+    <p style="text-align:center;color:var(--text-light);font-size:0.9rem;margin-bottom:12px;">Share this 5-digit code with your friend</p>
     <div style="display:flex;gap:8px;margin-bottom:16px;">
       <input type="text" id="fullRoomCodeDisplay" readonly
-        style="flex:1;padding:10px;border:2px solid var(--border);border-radius:10px;font-size:0.78rem;background:var(--cream);color:var(--text-mid);font-family:monospace;"
+        style="flex:1;padding:10px;border:2px solid var(--border);border-radius:10px;font-size:1.8rem;letter-spacing:8px;text-align:center;background:var(--cream);color:var(--text-dark);font-family:monospace;font-weight:700;"
         placeholder="Generating code...">
       <button onclick="copyRoomCode()" class="btn btn-primary" style="width:auto;padding:10px 16px;font-size:0.85rem;">📋 Copy</button>
     </div>
@@ -609,20 +609,16 @@ let conn = null;       // active DataConnection
 let isHost = false;    // did we create the room?
 let peerReady = false;
 
-function initPeer(onReady) {
-  peer = new Peer(undefined, {
-    host: '0.peerjs.com', port: 443, path: '/',
-    secure: true, debug: 0,
-    config: { iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:global.xirsys.com', username:'free', credential:'free' }
-    ]}
-  });
-  peer.on('open', id => { peerReady = true; if (onReady) onReady(id); });
+function initPeer(customId, onReady) {
+  const opts = { host:'0.peerjs.com', port:443, path:'/', secure:true, debug:0,
+    config:{ iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}] }};
+  peer = customId ? new Peer(customId, opts) : new Peer(opts);
+  peer.on('open', id => { peerReady=true; if(onReady) onReady(id); });
   peer.on('error', err => {
-    console.error('PeerJS error:', err);
-    showToast('⚠️ Connection error: ' + err.type);
+    if(err.type==='unavailable-id') {
+      try{peer.destroy();}catch(e){}
+      initPeer('chess-'+Math.floor(10000+Math.random()*90000), onReady);
+    } else { showToast('Connection error: '+err.type); }
   });
 }
 
@@ -632,18 +628,9 @@ function sendToOpponent(data) {
 
 function setupConnection(c) {
   conn = c;
-  conn.on('open', () => {
-    showToast('✅ Connected!');
-  });
-  conn.on('data', data => {
-    handleOnlineData(data);
-  });
-  conn.on('close', () => {
-    if (!gameOver) showToast('⚠️ Opponent disconnected');
-  });
-  conn.on('error', err => {
-    showToast('Connection error: ' + err);
-  });
+  conn.on('data', data => { handleOnlineData(data); });
+  conn.on('close', () => { if (!gameOver) showToast('Opponent disconnected'); });
+  conn.on('error', err => showToast('Connection error'));
 }
 
 function handleOnlineData(data) {
@@ -657,7 +644,8 @@ function handleOnlineData(data) {
     capturedB = data.capturedB || [];
     lastMove = data.lastMove || null;
     renderBoard();
-    animatePiece(data.lastMove ? data.lastMove[1] : -1, 'ai-moving');
+    if (data.lastMove && data.lastMove[1] !== undefined) animatePiece(data.lastMove[1], 'ai-moving');
+    if (turn === playerColor) showToast('Your turn! ♟');
   } else if (data.type === 'gameOver') {
     showGameOver(data.reason, data.winner);
   } else if (data.type === 'draw') {
@@ -1760,35 +1748,28 @@ function generateRoomCode() {
 
 function createRoom() {
   const name = document.getElementById('onlinePlayerName').value.trim() || 'Player';
-  onlineEngLevel = document.querySelector('.eng-level-card.selected[id^="oelev-"]')?.id?.replace('oelev-','') || 'A';
-  isHost = true;
-  playerColor = 'w';
-  myRole = 'host';
-
-  showToast('🔄 Creating room...');
-
-  initPeer(peerId => {
-    roomCode = peerId; // full peer ID is the room code
-    const displayCode = peerId.slice(0,6).toUpperCase();
-
-    const el = document.getElementById('displayRoomCode');
-    el.textContent = displayCode;
-    el.dataset.fullId = peerId;
-    document.getElementById('fullRoomCode').value = peerId;
-    const dispEl = document.getElementById('fullRoomCodeDisplay');
-    if (dispEl) dispEl.value = peerId;
+  const lvls=['A','B','C'];
+  onlineEngLevel = lvls.find(l=>document.getElementById('oelev-'+l)?.classList.contains('selected')) || 'A';
+  isHost=true; playerColor='w'; myRole='host';
+  const digits = Math.floor(10000+Math.random()*90000).toString();
+  showToast('Creating room...');
+  initPeer('chess-'+digits, () => {
+    roomCode = digits;
+    document.getElementById('displayRoomCode').textContent = digits;
+    const d=document.getElementById('fullRoomCodeDisplay'); if(d) d.value=digits;
+    document.getElementById('fullRoomCode').value=digits;
     showScreen('waitingScreen');
-
-    // Wait for incoming connection
     peer.on('connection', c => {
+      const guestName = c.metadata?.name || 'Opponent';
       setupConnection(c);
       c.on('open', () => {
-        // Send initial game state + player info
         initBoard();
-        sendToOpponent({ type: 'start', hostName: name, engLevel: onlineEngLevel });
-        setupGameScreen(name, c.metadata?.name || 'Opponent', 'online', 'w');
-        showScreen('gameScreen');
-        renderBoard();
+        setTimeout(()=>{
+          sendToOpponent({type:'start', hostName:name, engLevel:onlineEngLevel});
+          setupGameScreen(name, guestName, 'online', 'w');
+          showScreen('gameScreen');
+          renderBoard();
+        }, 300);
       });
     });
   });
@@ -1796,20 +1777,13 @@ function createRoom() {
 
 function joinRoom() {
   const name = document.getElementById('onlinePlayerName').value.trim() || 'Player';
-  const code = document.getElementById('roomCodeInput').value.trim();
-  if (!code || code.length < 8) { showToast('Paste the full room code shared by your host'); return; }
-
-  isHost = false;
-  playerColor = 'b';
-  myRole = 'guest';
-  roomCode = code;
-  onlineEngLevel = document.querySelector('.eng-level-card.selected[id^="oelev-"]')?.id?.replace('oelev-','') || 'A';
-
-  showToast('🔄 Connecting...');
-
-  initPeer(() => {
-    attemptConnect(code, name);
-  });
+  const raw = document.getElementById('roomCodeInput').value.trim().replace(/\D/g,'');
+  if(raw.length!==5){ showToast('Enter the 5-digit room code'); return; }
+  isHost=false; playerColor='b'; myRole='guest'; roomCode=raw;
+  const lvls=['A','B','C'];
+  onlineEngLevel = lvls.find(l=>document.getElementById('oelev-'+l)?.classList.contains('selected')) || 'A';
+  showToast('Connecting...');
+  initPeer(null, ()=>{ attemptConnect('chess-'+raw, name); });
 }
 
 function attemptConnect(targetId, myName) {
