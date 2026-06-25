@@ -438,6 +438,22 @@
   .stats-table tr:last-child td { border-bottom: none; }
   .stats-table tr:nth-child(even) td { background: var(--cream); }
 
+
+  /* ─── MULTIPLAYER MODE SELECTOR ─── */
+  .mp-mode-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;
+  }
+  .mp-mode-card {
+    border: 2px solid var(--border); border-radius: 14px; padding: 18px 10px;
+    cursor: pointer; text-align: center; transition: all 0.2s; background: var(--warm-white);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mp-mode-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 16px var(--shadow); }
+  .mp-mode-card.selected { border-color: var(--accent); background: rgba(74,124,89,0.08); box-shadow: 0 0 0 3px rgba(74,124,89,0.15); }
+  .mp-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+  .mp-name { font-weight: 700; font-size: 0.95rem; color: var(--text-dark); margin-bottom: 4px; }
+  .mp-desc { font-size: 0.75rem; color: var(--text-light); line-height: 1.4; }
+
 </style>
 </head>
 <body>
@@ -452,7 +468,7 @@
   <div class="menu-card">
     <h2>How do you want to play?</h2>
     <button class="btn btn-primary" onclick="showAIMenu()">🤖 vs Machine</button>
-    <button class="btn btn-secondary" onclick="showOnlineMenu()">🌐 Online Multiplayer</button>
+    <button class="btn btn-secondary" onclick="showOnlineMenu()">🎮 Multiplayer</button>
     <button class="btn btn-outline" onclick="showStatsScreen()" style="margin-top:4px;">📊 View Stats</button>
   </div>
 </div>
@@ -523,45 +539,72 @@
 <div id="onlineScreen" class="screen">
   <button class="back-btn" onclick="goMenu()">← Menu</button>
   <div class="logo">
-    <span class="chess-icon">🌐</span>
+    <span class="chess-icon">🎮</span>
     <h1>Multi<span>player</span></h1>
-    <p>Play with a friend online</p>
+    <p>Choose how you want to play</p>
   </div>
   <div class="menu-card">
-    <div class="input-group">
-      <label>Your name</label>
-      <input type="text" id="onlinePlayerName" placeholder="Enter your name..." value="Player" maxlength="20">
+    <!-- Mode selector -->
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;text-align:center;margin-bottom:16px;color:var(--text-mid);">How are you playing?</h2>
+    <div class="mp-mode-grid">
+      <div class="mp-mode-card selected" id="mpMode-local" onclick="selectMpMode('local')">
+        <span class="mp-icon">📱</span>
+        <div class="mp-name">Same Device</div>
+        <div class="mp-desc">Pass &amp; Play<br>on one screen</div>
+      </div>
+      <div class="mp-mode-card" id="mpMode-online" onclick="selectMpMode('online')">
+        <span class="mp-icon">🌐</span>
+        <div class="mp-name">Different Devices</div>
+        <div class="mp-desc">Connect via<br>room code</div>
+      </div>
     </div>
-    
+
+    <!-- English level (shared) -->
     <div style="margin-bottom:16px;">
-      <label style="display:block;font-size:0.85rem;font-weight:700;color:var(--text-mid);margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase;">English level para preguntas</label>
+      <label style="display:block;font-size:0.85rem;font-weight:700;color:var(--text-mid);margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase;">English level for questions</label>
       <div class="eng-level-grid">
         <div class="eng-level-card selected" id="oelev-A" onclick="selectOnlineEngLevel('A')">
-          <span class="e-icon">🌱</span>
-          <div class="e-name">A1/A2</div>
-          <div class="e-desc">Basic</div>
+          <span class="e-icon">🌱</span><div class="e-name">A1/A2</div><div class="e-desc">Basic</div>
         </div>
         <div class="eng-level-card" id="oelev-B" onclick="selectOnlineEngLevel('B')">
-          <span class="e-icon">📚</span>
-          <div class="e-name">B1/B2</div>
-          <div class="e-desc">Intermediate</div>
+          <span class="e-icon">📚</span><div class="e-name">B1/B2</div><div class="e-desc">Intermediate</div>
         </div>
         <div class="eng-level-card" id="oelev-C" onclick="selectOnlineEngLevel('C')">
-          <span class="e-icon">🎓</span>
-          <div class="e-name">C1/C2</div>
-          <div class="e-desc">Advanced</div>
+          <span class="e-icon">🎓</span><div class="e-name">C1/C2</div><div class="e-desc">Advanced</div>
         </div>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="createRoom()">🏠 Create room</button>
-    <div class="divider">o</div>
-    <div class="input-group">
-      <label>5-digit room code</label>
-      <input type="text" id="roomCodeInput" placeholder="12345" maxlength="5"
-        style="font-size:1.8rem;letter-spacing:8px;text-align:center;font-family:monospace;font-weight:700;">
+
+    <!-- SAME DEVICE panel -->
+    <div id="localPanel">
+      <div class="input-group">
+        <label>White player name ♔</label>
+        <input type="text" id="localNameW" placeholder="Player 1" value="Player 1" maxlength="20">
+      </div>
+      <div class="input-group">
+        <label>Black player name ♚</label>
+        <input type="text" id="localNameB" placeholder="Player 2" value="Player 2" maxlength="20">
+      </div>
+      <button class="btn btn-primary" onclick="startLocalGame()">▶ Start Game</button>
     </div>
-    <button class="btn btn-secondary" onclick="joinRoom()">🚪 Join room</button>
-    <button class="btn btn-outline" style="margin-top:8px" onclick="goMenu()">← Back</button>
+
+    <!-- DIFFERENT DEVICES panel (hidden by default) -->
+    <div id="onlinePanel" style="display:none;">
+      <div class="input-group">
+        <label>Your name</label>
+        <input type="text" id="onlinePlayerName" placeholder="Enter your name..." value="Player" maxlength="20">
+      </div>
+      <button class="btn btn-primary" onclick="createRoom()">🏠 Create room</button>
+      <div class="divider">or</div>
+      <div class="input-group">
+        <label>5-digit room code</label>
+        <input type="text" id="roomCodeInput" placeholder="12345" maxlength="5"
+          style="font-size:1.8rem;letter-spacing:8px;text-align:center;font-family:monospace;font-weight:700;">
+      </div>
+      <button class="btn btn-secondary" onclick="joinRoom()">🚪 Join room</button>
+    </div>
+
+    <button class="btn btn-outline" style="margin-top:12px" onclick="goMenu()">← Back</button>
   </div>
 </div>
 
@@ -1691,7 +1734,9 @@ function showGameOver(reason, winner) {
   if (reason==='checkmate') {
     trophy.textContent = winner==='w'?'♔':'♚';
     title.textContent = 'Checkmate!';
-    msg.textContent = `${winner==='w'?'White':'Black'} wins the game`;
+    const wName = document.getElementById('nameBottom')?.textContent || 'White';
+    const bName = document.getElementById('nameTop')?.textContent || 'Black';
+    msg.textContent = `${winner==='w' ? wName : bName} wins the game`;
     statusEl.textContent = 'Checkmate!';
     statusEl.className = 'status-bar win';
   } else if (reason==='stalemate') {
@@ -1709,13 +1754,17 @@ function showGameOver(reason, winner) {
   } else if (reason==='resign') {
     trophy.textContent = winner==='w'?'♔':'♚';
     title.textContent = 'Victory!';
-    msg.textContent = `${winner==='w'?'White':'Black'} wins by resignation`;
+    const wNameR = document.getElementById('nameBottom')?.textContent || 'White';
+    const bNameR = document.getElementById('nameTop')?.textContent || 'Black';
+    msg.textContent = `${winner==='w' ? wNameR : bNameR} wins by resignation`;
     statusEl.textContent = 'Resignation';
     statusEl.className = 'status-bar win';
   } else if (reason==='timeout') {
     trophy.textContent = winner==='w'?'♔':'♚';
     title.textContent = 'Time!';
-    msg.textContent = `${winner==='w'?'White':'Black'} wins on time`;
+    const wNameT = document.getElementById('nameBottom')?.textContent || 'White';
+    const bNameT = document.getElementById('nameTop')?.textContent || 'Black';
+    msg.textContent = `${winner==='w' ? wNameT : bNameT} wins on time`;
     statusEl.textContent = 'Time out';
     statusEl.className = 'status-bar win';
   }
@@ -2122,9 +2171,15 @@ function doMove(from, to, promoChoice) {
   if(!inCheck&&!hasMoves){renderBoard();setTimeout(()=>showGameOver('stalemate',null),500);return;}
   
   renderBoard();
-  // Animate the piece that just arrived
   animatePiece(to, color !== playerColor && gameMode === 'ai' ? 'ai-moving' : 'moving');
   if(gameMode==='online') syncOnlineMove();
+  // Local mode: hint whose turn it is
+  if(gameMode==='local' && !gameOver) {
+    const nextName = turn === 'w'
+      ? document.getElementById('nameBottom').textContent
+      : document.getElementById('nameTop').textContent;
+    showToast(nextName + "'s turn");
+  }
   
   // Trigger AI if needed
   if(gameMode==='ai') triggerAIMoveIfNeeded();
@@ -2174,6 +2229,41 @@ function showPromotionModal(color) {
 
 // Initial render
 initBoard()
+
+
+// ══════════════════════════════════════════
+// MULTIPLAYER MODE SELECTOR
+// ══════════════════════════════════════════
+let mpMode = 'local'; // 'local' | 'online'
+
+function selectMpMode(mode) {
+  mpMode = mode;
+  ['local','online'].forEach(m => {
+    const card = document.getElementById('mpMode-' + m);
+    if (card) card.classList.toggle('selected', m === mode);
+  });
+  document.getElementById('localPanel').style.display  = mode === 'local'  ? 'block' : 'none';
+  document.getElementById('onlinePanel').style.display = mode === 'online' ? 'block' : 'none';
+}
+
+function startLocalGame() {
+  const nameW = document.getElementById('localNameW').value.trim() || 'Player 1';
+  const nameB = document.getElementById('localNameB').value.trim() || 'Player 2';
+  const lvls = ['A','B','C'];
+  onlineEngLevel = lvls.find(l => document.getElementById('oelev-'+l)?.classList.contains('selected')) || 'A';
+
+  initBoard();
+  // In local mode playerColor is always 'w' — but BOTH players can move
+  // We track whose turn it is via `turn` and allow any human to move
+  playerColor = 'w'; // board orientation: white at bottom
+  gameMode = 'local';
+
+  setupGameScreen(nameW, nameB, 'local', 'w');
+  showScreen('gameScreen');
+  renderBoard();
+  armExit();
+  showToast(nameW + ' starts — White ♔');
+}
 
 // ══════════════════════════════════════════
 // EXIT PROTECTION
@@ -2368,6 +2458,7 @@ function handleSquareClick(i) {
   const aiColor = playerColor === 'w' ? 'b' : 'w';
   if (gameMode === 'ai' && turn === aiColor) return;
   if (gameMode === 'online' && turn !== playerColor) return;
+  // local mode: both players share device — no color restriction, just alternate turns
 
   const piece = board[i];
   if (selected !== null && possibleMoves.includes(i)) {
@@ -2384,6 +2475,11 @@ function handleSquareClick(i) {
       playerName = bottomIsWhite
         ? (movingColor === 'w' ? document.getElementById('nameBottom').textContent : 'IA')
         : (movingColor === 'b' ? document.getElementById('nameBottom').textContent : 'IA');
+    } else if (gameMode === 'local') {
+      // In local mode, show the name of whoever is moving
+      playerName = movingColor === 'w'
+        ? document.getElementById('nameBottom').textContent
+        : document.getElementById('nameTop').textContent;
     } else {
       playerName = movingColor === (bottomIsWhite ? 'w' : 'b')
         ? document.getElementById('nameBottom').textContent
@@ -2553,7 +2649,7 @@ function saveStatsToSheet(s) {
     time:        new Date().toLocaleTimeString('en-US'),
     playerWhite: s.playerWhite,
     playerBlack: s.playerBlack,
-    mode:        s.mode,
+    mode:        s.mode === 'local' ? 'Pass & Play' : s.mode,
     aiLevel:     s.level,
     engLevel:    s.engLevel,
     result:      s.result,
